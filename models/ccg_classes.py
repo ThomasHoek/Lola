@@ -1,4 +1,29 @@
 from __future__ import annotations
+from nltk.sem.logic import * 
+import string
+
+read_expr = Expression.fromstring
+
+
+alphabet_upper = [x.upper() for x in list(string.ascii_lowercase)]
+alphabet_lower = list(string.ascii_lowercase)
+variables_lower = set()
+variables_upper = set()
+
+# used by to_lambda to give new variable letter to each template
+def get_new_lower_variable():
+    for letter in alphabet_lower:
+        if letter not in variables_lower:
+            variables_lower.add(letter)
+            return letter
+    return 'x'
+
+def get_new_upper_variable():
+    for letter in alphabet_upper:
+        if letter not in variables_upper:
+            variables_upper.add(letter)
+            return letter
+    return 'P'
 
 
 class tree_info():
@@ -91,6 +116,9 @@ class leaf_info():
     leaf class to store info from the  NLTK format
     """
 
+    lambda_formula = None # set by set_lambda
+    POS = None
+
     def __init__(self, tree) -> None:  # type: ignore
         """
         __init__ Parses a NLTK tree into leafs
@@ -109,13 +137,56 @@ class leaf_info():
             for child2 in child:
                 self.word: str = child2
 
-    def set_lambda(self, lambda_formule: str) -> None:
+    def set_lambda_formula(self) -> None:
         """
-        set_lambda Set the lambda string that fits the word and type
+        set_lambda_formula Set the lambda_formula to the expression, according to the lemma, semantics and POS  
         Args:
-            lambda_formule (str): sets the lambda formula of the leaf class
+            lambda_formula (str): sets lambda_formula of this object
         """
-        self.lambda_formule: str = lambda_formule
+        print(f'self.word: {self.word}, self.semantics: {self.semantics}, self.POS: {self.POS}')
+        match (self.word.lower(), str(self.semantics), self.POS):
+            
+            case (word, r"((S\NP)/NP)", pos) | (word, "VP/NP", pos):
+                print('Does not work yet')
+                var_1 = get_new_upper_variable()
+                var_2 = get_new_upper_variable()
+                var_3 = get_new_lower_variable()
+                self.lambda_formula = read_expr(rf"\P\Q.(S(\x.(O(\y.{word}(x,y)))))")
+
+            case ('sommige', "PP/NP", pos):
+                P = get_new_upper_variable()
+                Q = get_new_upper_variable()
+                x = get_new_lower_variable()
+                self.lambda_formula = read_expr(rf"\{P}.\{Q}. (exists {x} . ({P}({x}) -> {Q}({x})))")
+            
+            case ('sommige', sem, pos):
+                P = get_new_upper_variable()
+                Q = get_new_upper_variable()
+                x = get_new_lower_variable()
+                self.lambda_formula = read_expr(rf"\{P}.\{Q}. (exists {x} . ({P}({x}) -> {Q}({x})))")
+
+            case ('alle', "NP/N", pos):
+                P = get_new_upper_variable()
+                Q = get_new_upper_variable()
+                x = get_new_lower_variable()
+                self.lambda_formula = read_expr(rf"\{P}.\{Q}. (all \{x} . (\{P}(\{x}) -> \{Q}(\{x})))")
+
+            case (word, "NP/N", pos):
+                print(f'MISSING: NP/N! word: {word}, pos: {pos}')
+
+            case (word, r"(S\NP)", pos) | (word, r"S\NP", pos):
+                P = get_new_upper_variable()
+                Q = get_new_upper_variable()
+                x = get_new_lower_variable()
+                self.lambda_formula = read_expr(rf"\{P} . ({P}(\{x}.{word}({x})))")
+                
+                
+            case (word, "N", pos):
+                x = get_new_lower_variable()
+                self.lambda_formula = read_expr(rf"\{x}.{word}({x})")
+
+            case (word, sem, pos):
+                print(f'Missing (default): {word}, {sem}, {pos}')
 
     def make_lambda(self, lambda_formule: bool = True) -> str:
         """
