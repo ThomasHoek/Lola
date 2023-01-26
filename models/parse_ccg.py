@@ -1,22 +1,8 @@
-import nltk.tree.tree
+# import nltk.tree.tree
+# from nltk.ccg.lexicon import Token as token_class_type
 from nltk.tree.tree import Tree as tree_class_type
-from nltk.ccg.lexicon import Token as token_class_type
-from ccg_classes import leaf_info
+from ccg_classes import tree_info, leaf_info
 from parse_tree import parse_tree
-# list | str
-
-
-def print_leaf_lst(inp) -> str:
-    string: str = f""
-
-    if type(inp) == list:
-        first = print_leaf_lst(inp[0])
-        second = print_leaf_lst(inp[1])
-        string = f"({first}@{second})"
-    else:
-        string = f"[[{inp.word} | {inp.semantics}]]"
-
-    return string
 
 
 def recursive_leaves(self):
@@ -28,20 +14,11 @@ def recursive_leaves(self):
         first = self[0].recursive_leaves()
         second = self[1].recursive_leaves()
 
-        # check type
-        if label == ">":
-            leaf_lst = [first, second]
-
-        elif label == "<":
-            leaf_lst = [second, first]
-
-        elif label == ">B":
-            leaf_lst = [second, first]
+        return tree_info(first, second, label)
 
     else:
         # tree only contains nodes
         return leaf_info(self)
-        # return "[" + str(self[0]) + " | " + str(self.label()) + "]"
 
     return leaf_lst
 
@@ -73,4 +50,5 @@ ccg(84,
 
     parse = parse_tree("Een man zit in een veld", data)
     test_var = parse.recursive_leaves()
-    print(print_leaf_lst(test_var))
+    print(test_var.print())
+    print(test_var.print_lambda())

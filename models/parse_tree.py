@@ -2,8 +2,9 @@ from nltk.ccg import chart, lexicon
 
 string_symbols = "S, NP, N, PP"
 
-# Collecting all rules from the parses #
+
 def make_dict(data):
+    # Collecting all rules from the parses
     dict_rules = {}
     new_data = data.split('\n')
     for item in new_data:
