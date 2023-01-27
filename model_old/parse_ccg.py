@@ -67,4 +67,4 @@ ccg(84,
     tree_parse = parse.recursive_leaves()
 
     print(tree_parse.print())
-    print(tree_parse.print_lambda())
+    print(tree_parse.print_lambda(False))
