@@ -1,5 +1,6 @@
 from __future__ import annotations
-from typing import Any, Callable, NoReturn
+from tkinter.messagebox import NO
+from typing import Any, NoReturn
 from nltk.sem.logic import Expression  # type: ignore
 import string
 
@@ -11,7 +12,8 @@ alphabet_lower: list[str] = list(string.ascii_lowercase)
 variables_lower: set[Any] = set()
 variables_upper: set[Any] = set()
 
-
+# FIXME: This function only returns x for some reason
+# we probably need to reset variables_lower and upper after every word
 def get_new_lower_variable() -> str:
     """
     get_new_lower_variable used by to_lambda to give new variable letter to each template
@@ -25,7 +27,8 @@ def get_new_lower_variable() -> str:
             return letter
     return 'x'
 
-
+# FIXME: This function only returns P for some reason
+# we probably need to reset variables_lower and upper after every word
 def get_new_upper_variable() -> str:
     """
     get_new_upper_variable  used by to_lambda to give new variable letter to each template
@@ -38,6 +41,7 @@ def get_new_upper_variable() -> str:
             variables_upper.add(letter)
             return letter
     return 'P'
+
 
 
 class leaf:
@@ -97,7 +101,8 @@ class leaf:
         Returns:
             str: cleaned input string
         """
-        replace_list: list[str] = ["DCL", "TO", "ADJ", "B", "PSS", "PT", "NG", "EM"]
+        replace_list: list[str] = ["DCL", "TO",
+                                   "ADJ", "B", "PSS", "PT", "NG", "EM"]
         for replace_word in replace_list:
             self.semantics = self.semantics.replace(f":{replace_word}", "")
 
@@ -118,7 +123,7 @@ class leaf:
             str: output string
         """
         if lambda_formule:
-            return f"[{self.lambda_formula}]"
+            return f"({self.lambda_formula})"
         else:
             return f"[{self.word}]"
 
@@ -127,9 +132,9 @@ class leaf:
         set_lambda_formula Set the lambda_formula to the expression, according to the lemma, semantics and POS
         sets lambda_formula of this object
         """
-        P: str
-        Q: str
-        x: str
+        P: str = None
+        Q: str = None
+        x: str = None
         self.lambda_formula: Any
         # print(f'self.word: {self.word}, self.semantics: {self.semantics}, self.POS: {self.spacy_p}')
 
@@ -140,7 +145,7 @@ class leaf:
                 return
 
                 # FIXME
-                print(f"Error with parsing string: {self.word}. Forbidden word found")
+                # print(f"Error with parsing string: {self.word}. Forbidden word found")
 
         match (self.word.lower(), str(self.semantics), self.spacy_p):
 
@@ -196,6 +201,10 @@ class leaf:
 
                 # FIXME
                 # raise NotImplementedError(f'Missing (default): {word}, {sem}, {pos}')
+            case _:
+                pass
+
+        print(P, Q, x)
 
     def find_child(self, *args: Any) -> NoReturn:
         """
@@ -380,27 +389,27 @@ class tree:
 
             if self.label == "fa":
                 # Forward application
-                return rf"({left}@{right})"
+                return rf"({left} {right})"
 
             elif self.label == "ba":
                 # backward application
-                return rf"({right}@{left})"
+                return rf"({right} {left})"
 
             elif self.label == "fc":
                 # Forward composition
-                return rf"(\x.{left}@({right}@x))"
+                return rf"(\x.{left} ({right}x))"
 
             elif self.label == "bc":
                 # Backward composition
-                return rf"(\x.{right}@({left}@x))"
+                return rf"(\x.{right} ({left}x))"
 
             elif self.label == "fxc":
                 # Forward crossing composition
-                return rf"(\x.{right}@({left}@x))"
+                return rf"(\x.{right} ({left}x))"
 
             elif self.label == "fxc":
                 # Backward crossing composition
-                return rf"(\x.{right}@({left}@x))"
+                return rf"(\x.{right} ({left}x))"
             else:
                 raise NotImplementedError(self.label, " not found")
 

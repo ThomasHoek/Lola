@@ -2,6 +2,9 @@ from typing import IO, Any
 import ccg_parse
 from ccg_class import tree
 import pickle
+from nltk.sem.logic import Expression  # type: ignore
+
+read_expr = Expression.fromstring  # type: ignore
 
 
 def brackets_check(input_str: str) -> bool:
@@ -82,8 +85,17 @@ if __name__ == "__main__":
         with open(f"{dir_path}/../output/ccg_info_pickle", 'wb') as f:
             pickle.dump(class_lst, f)
 
+        correct_file: IO[Any] = open(
+            f"{dir_path}/../output/correct.txt", "w+", encoding="utf-8")
+
         output_file: IO[Any] = open(
             f"{dir_path}/../output/output.py", "w+", encoding="utf-8")
         for i in range(len(ccg_info_dict)):
-            output_file.write(r"{}".format(ccg_info_dict[i]) + "\n")
+            lambda_simp: Any = read_expr(ccg_info_dict[i]).simplify()
+            output_file.write(r"{} | {}".format(
+                lambda_simp, ccg_info_dict[i] + "\n"))
+
+            if ccg_info_dict[i] != "error":
+                correct_file.write(str(i) + "\n")
         output_file.close()
+        correct_file.close()
