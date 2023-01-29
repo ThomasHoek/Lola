@@ -154,23 +154,26 @@ class leaf:
                     rf"\P\Q.(S(\x.(O(\y.{word}(x,y)))))")
 
             case ('sommige', "PP/NP", pos):
-                P = get_new_upper_variable()
-                Q = get_new_upper_variable()
-                x = get_new_lower_variable()
+                print('sommige, PP/NP')
+                P = self.get_new_upper_variable()
+                Q = self.get_new_upper_variable()
+                x = self.get_new_lower_variable()
                 self.lambda_formula = read_expr(
                     rf"\{P}.\{Q}. (exists {x} . ({P}({x}) -> {Q}({x})))")
 
             case ('sommige', sem, pos):
-                P = get_new_upper_variable()
-                Q = get_new_upper_variable()
-                x = get_new_lower_variable()
+                print('sommige, rest')
+                P = self.get_new_upper_variable()
+                Q = self.get_new_upper_variable()
+                x = self.get_new_lower_variable()
                 self.lambda_formula = read_expr(
                     rf"\{P}.\{Q}. (exists {x} . ({P}({x}) -> {Q}({x})))")
 
             case ('alle', "NP/N", pos):
-                P = get_new_upper_variable()
-                Q = get_new_upper_variable()
-                x = get_new_lower_variable()
+                print(r'alle, NP/N')
+                P = self.get_new_upper_variable()
+                Q = self.get_new_upper_variable()
+                x = self.get_new_lower_variable()
                 self.lambda_formula = read_expr(
                     rf"\{P}.\{Q}. (all \{x} . (\{P}(\{x}) -> \{Q}(\{x})))")
 
@@ -180,15 +183,22 @@ class leaf:
                 # FIXME
                 # raise NotImplementedError("MISSING: NP/N! word: ", word, " pos: ", pos)
 
+            case ('is', sem, pos):
+                P = self.get_new_upper_variable()
+                Q = self.get_new_upper_variable()
+                self.lambda_formula = read_expr(
+                    rf"\{P}.\{Q}.{P}({Q})"
+                )
+
             case (word, r"(S\NP)", pos) | (word, r"S\NP", pos):
-                P = get_new_upper_variable()
-                Q = get_new_upper_variable()
-                x = get_new_lower_variable()
+                P = self.get_new_upper_variable()
+                Q = self.get_new_upper_variable()
+                x = self.get_new_lower_variable()
                 self.lambda_formula = read_expr(
                     rf"\{P} . ({P}(\{x}.{word}({x})))")
 
             case (word, "N", pos):
-                x = get_new_lower_variable()
+                x = self.get_new_lower_variable()
                 self.lambda_formula = read_expr(rf"\{x}.{word}({x})")
 
             case (word, sem, pos):
