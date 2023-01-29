@@ -6,46 +6,10 @@ import string
 
 read_expr = Expression.fromstring  # type: ignore
 
-# helper functions
-alphabet_upper: list[str] = [x.upper() for x in list(string.ascii_lowercase)]
-alphabet_lower: list[str] = list(string.ascii_lowercase)
-variables_lower: set[Any] = set()
-variables_upper: set[Any] = set()
-
-# FIXME: This function only returns x for some reason
-# we probably need to reset variables_lower and upper after every word
-def get_new_lower_variable() -> str:
-    """
-    get_new_lower_variable used by to_lambda to give new variable letter to each template
-
-    Returns:
-        str: unique letter
-    """
-    for letter in alphabet_lower:
-        if letter not in variables_lower:
-            variables_lower.add(letter)
-            return letter
-    return 'x'
-
-# FIXME: This function only returns P for some reason
-# we probably need to reset variables_lower and upper after every word
-def get_new_upper_variable() -> str:
-    """
-    get_new_upper_variable  used by to_lambda to give new variable letter to each template
-
-    Returns:
-        str: unique letter
-    """
-    for letter in alphabet_upper:
-        if letter not in variables_upper:
-            variables_upper.add(letter)
-            return letter
-    return 'P'
-
-
 
 class leaf:
     """Leaf"""
+
 
     def __init__(self, raw_str: str, depth: int, spacy_info: Any) -> None:
         self.raw_str: str = raw_str
@@ -57,6 +21,11 @@ class leaf:
         self.spacy_p: str = spacy_info["p"]
 
         self.filter_raw_str(raw_str[:-1])
+
+        self.alphabet_upper: list[str] = [x.upper() for x in list(string.ascii_lowercase)]
+        self.alphabet_lower: list[str] = list(string.ascii_lowercase)
+        self.variables_lower: set[Any] = set()
+        self.variables_upper: set[Any] = set()
 
         self.lambda_formula = None
         self.set_lambda_formula()
@@ -126,6 +95,32 @@ class leaf:
             return f"({self.lambda_formula})"
         else:
             return f"[{self.word}]"
+
+    def get_new_lower_variable(self) -> str:
+        """
+        get_new_lower_variable used by to_lambda to give new variable letter to each template
+
+        Returns:
+            str: unique letter
+        """
+        for letter in self.alphabet_lower:
+            if letter not in self.variables_lower:
+                self.variables_lower.add(letter)
+                return letter
+        return 'x'
+
+    def get_new_upper_variable(self) -> str:
+        """
+        get_new_upper_variable  used by to_lambda to give new variable letter to each template
+
+        Returns:
+            str: unique letter
+        """
+        for letter in self.alphabet_upper:
+            if letter not in self.variables_upper:
+                self.variables_upper.add(letter)
+                return letter
+        return 'P'
 
     def set_lambda_formula(self) -> None:
         """
