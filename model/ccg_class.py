@@ -223,14 +223,21 @@ class leaf:
                     rf"\{P}.\{Q}.({P} (\{R}.(in({Q}, {R}))))"
                 )
 
-            case (word, "NP/(N/PP)", "PRON"):
+            case (word, "S\S", "NOUN"):
+                v1 = self.get_new_upper_variable()
+                self.lambda_formula = read_expr(
+                    rf"\{v1}.{v1}"
+                )
+
+            case (word, sem, "PRON"):
                 v1 = self.get_new_upper_variable()
                 v2 = self.get_new_upper_variable()
                 x1 = self.get_new_lower_variable()
-                pass
-                # self.lambda_formula = read_expr(
-                #     rf"\v1.\v2.((exists x1.) & ((v1(\v3.(exists x2 . (person(x2))) x1) & (v2 (x1))))"
-                # )
+                x2 = self.get_new_lower_variable()
+                
+                self.lambda_formula = read_expr(
+                    rf"\{v1} \{v2}((exists {x1} . ({v1} (exists {x2} . (persoon({x2}))) ({x1})) & ({v2} ({x1}))))"
+                )
 
             case (word, 'PP/NP', 'ADP'):
                 P = self.get_new_upper_variable()
@@ -259,11 +266,22 @@ class leaf:
                 v4 = self.get_new_upper_variable()
                 v5 = self.get_new_upper_variable()
 
-                # self.lambda_formula = read_expr(
-                #     rf"\{v1}.\{v2}.\{v3}.({v2} (\{v4}.(-(({v1} (\{v5}.({v5} ({v4}))))) ({v3})))"
-                # )
                 self.lambda_formula = read_expr(
-                    rf"\v1.(-v1)"
+                    rf"\{v1}. \{v2}. \{v3}. ({v2} (\{v4}.-(((({v1}(\{v5}.({v5}({v4})))))))))"
+                ) #                     rf"\{v1}. \{v2}. \{v3}. ({v2} (\{v4}.-(((({v1}(\{v5}.({v5}({v4}))))) {v3})))"
+                # self.lambda_formula = read_expr(
+                #     rf"\v1.(-v1)"
+                # )
+
+            case(word, 'N/PP', pos):
+                v1 = self.get_new_upper_variable()
+                v2 = self.get_new_upper_variable()
+                v3 = self.get_new_upper_variable()
+                x1 = self.get_new_lower_variable()
+                x2 = self.get_new_lower_variable()
+
+                self.lambda_formula = read_expr(
+                    rf"\{v1}.\{v2}.({word}({v2}) & {v1} ({v2}))"
                 )
 
 
