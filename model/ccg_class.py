@@ -57,6 +57,9 @@ class leaf:
             self.word = inp_str.split("'")[1]
             self.lemma = inp_str.split("'")[3]
 
+        self.word = self.word.replace('-', '')
+        self.word = self.word.replace(r'\'', '')
+
     def semantics_info(self) -> None:
         """
         semantics_info Cleans the semantics
@@ -103,11 +106,14 @@ class leaf:
         Returns:
             str: unique letter
         """
+        if 'z' in self.variables_lower:
+            self.variables_lower = set()
+
         for letter in self.alphabet_lower:
             if letter not in self.variables_lower:
                 self.variables_lower.add(letter)
                 return letter
-        return 'x'
+        
 
     def get_new_upper_variable(self) -> str:
         """
@@ -116,11 +122,13 @@ class leaf:
         Returns:
             str: unique letter
         """
+        if 'Z' in self.variables_upper:
+            self.variables_upper = set()
+
         for letter in self.alphabet_upper:
             if letter not in self.variables_upper:
                 self.variables_upper.add(letter)
                 return letter
-        return 'P'
 
     def set_lambda_formula(self) -> None:
         """
@@ -137,21 +145,27 @@ class leaf:
 
         for forbidden in forbidden_lst:
             if forbidden in self.word:
-                return
-
+                # For \' simply remove it from the string
+                # if not forbidden == r'\'':
+                #     return
+                
+                self.word.replace(r'\'', '')
+                self.word.replace('-', '')
                 # FIXME
                 # print(f"Error with parsing string: {self.word}. Forbidden word found")
 
+        print(f'word: {self.word.lower()}, semantic: {self.semantics}, pos: {self.spacy_p}')
+
         match (self.word.lower(), str(self.semantics), self.spacy_p):
 
-            case (word, r"((S\NP)/NP)", pos) | (word, "VP/NP", pos):
-                raise NotImplementedError("Not implemented yet")
-                print('Does not work yet')
-                P = get_new_upper_variable()
-                Q = get_new_upper_variable()
-                x = get_new_lower_variable()
+            case (word, r"((S\NP)/NP)", pos) | (word, r"(S\NP)/NP", pos) | (word, "VP/NP", pos):
+                print(r'word, r"((S\NP)/NP)", pos')
+                P = self.get_new_upper_variable()
+                Q = self.get_new_upper_variable()
+                x = self.get_new_lower_variable()
                 self.lambda_formula = read_expr(
-                    rf"\P\Q.(S(\x.(O(\y.{word}(x,y)))))")
+                    rf"\{P}.\{Q}.(exists {x}.({P}({x}) & {Q}({x})))"
+                    )
 
             case ('sommige', "PP/NP", pos):
                 print('sommige, PP/NP')
@@ -169,25 +183,122 @@ class leaf:
                 self.lambda_formula = read_expr(
                     rf"\{P}.\{Q}. (exists {x} . ({P}({x}) -> {Q}({x})))")
 
-            case ('alle', "NP/N", pos):
-                print(r'alle, NP/N')
+            case ('alle', "NP/N", pos) | ('elke', "NP/N", pos):
+                print(r'alle/elke, NP/N')
                 P = self.get_new_upper_variable()
                 Q = self.get_new_upper_variable()
                 x = self.get_new_lower_variable()
                 self.lambda_formula = read_expr(
                     rf"\{P}.\{Q}. (all \{x} . (\{P}(\{x}) -> \{Q}(\{x})))")
 
-            case (word, "NP/N", pos):
+            case ('of', sem, pos):
+                P = self.get_new_upper_variable()
+                Q = self.get_new_upper_variable()
+                self.lambda_formula = read_expr(
+                    rf"\{P}.\{Q}.({P} | {Q})"
+                )
+
+            case ('en', sem, "CCONJ"):
+                P = self.get_new_upper_variable()
+                Q = self.get_new_upper_variable()
+                self.lambda_formula = read_expr(
+                    rf"\{P}.\{Q}.({P} & {Q})"
+                )
+
+            case ('een', "NP/N", "DET"):
+                P = self.get_new_upper_variable()
+                Q = self.get_new_upper_variable()
+                x = self.get_new_lower_variable()
+                self.lambda_formula = read_expr(
+                    rf"\{P}\{Q}.(exists {x}.({P}({x}) & {Q}({x})))"
+                )
+
+            case ('in', 'PP/NP', 'ADP') | ('in', r"((S\NP)\(S\NP))/NP", 'ADP'):
+                P = self.get_new_upper_variable()
+                Q = self.get_new_upper_variable()
+                R = self.get_new_upper_variable()
+                x = self.get_new_lower_variable()
+
+                self.lambda_formula = read_expr(
+                    rf"\{P}.\{Q}.({P} (\{R}.(in({Q}, {R}))))"
+                )
+
+            case (word, "NP/(N/PP)", "PRON"):
+                v1 = self.get_new_upper_variable()
+                v2 = self.get_new_upper_variable()
+                x1 = self.get_new_lower_variable()
                 pass
+                # self.lambda_formula = read_expr(
+                #     rf"\v1.\v2.((exists x1.) & ((v1(\v3.(exists x2 . (person(x2))) x1) & (v2 (x1))))"
+                # )
+
+            case (word, 'PP/NP', 'ADP'):
+                P = self.get_new_upper_variable()
+                Q = self.get_new_upper_variable()
+                R = self.get_new_upper_variable()
+                x = self.get_new_lower_variable()
+
+                self.lambda_formula = read_expr(
+                    rf"\{P}.\{Q}.({P} (\{R}.({word}({Q}, {R}))))"
+                )
+
+            case (word, "NP/N", "DET"):
+                P = self.get_new_upper_variable()
+
+                self.lambda_formula = read_expr(
+                    rf"\{P}.({P})"
+                )
 
                 # FIXME
                 # raise NotImplementedError("MISSING: NP/N! word: ", word, " pos: ", pos)
+
+            case ('niet', sem, 'ADV'):
+                v1 = self.get_new_upper_variable()
+                v2 = self.get_new_upper_variable()
+                v3 = self.get_new_upper_variable()
+                v4 = self.get_new_upper_variable()
+                v5 = self.get_new_upper_variable()
+
+                # self.lambda_formula = read_expr(
+                #     rf"\{v1}.\{v2}.\{v3}.({v2} (\{v4}.(-(({v1} (\{v5}.({v5} ({v4}))))) ({v3})))"
+                # )
+                self.lambda_formula = read_expr(
+                    rf"\v1.(-v1)"
+                )
+
+
+            case (word, sem, "DET"):
+                P = self.get_new_upper_variable()
+                
+                self.lambda_formula = read_expr(
+                    rf"\{P}.({P})"
+                )
 
             case ('is', sem, pos):
                 P = self.get_new_upper_variable()
                 Q = self.get_new_upper_variable()
                 self.lambda_formula = read_expr(
                     rf"\{P}.\{Q}.{P}({Q})"
+                )
+
+            case (word, r"(NP\NP)/NP", "CCONJ"):
+                P = self.get_new_upper_variable()
+                Q = self.get_new_upper_variable()
+                self.lambda_formula = read_expr(
+                    rf"\{P}\{Q}.{P}&{Q}"
+                )
+
+            case (word, "PP/NP", "SCONJ"): # in, naar 
+                P = self.get_new_upper_variable()
+                Q = self.get_new_upper_variable()
+                self.lambda_formula = read_expr(
+                    rf"\{P}\{Q}.{P}&{Q}"
+                )
+
+            case (word, sem, "PUNCT"):
+                P = self.get_new_upper_variable()
+                self.lambda_formula = read_expr(
+                    rf"\P.P"
                 )
 
             case (word, r"(S\NP)", pos) | (word, r"S\NP", pos):
@@ -197,19 +308,53 @@ class leaf:
                 self.lambda_formula = read_expr(
                     rf"\{P} . ({P}(\{x}.{word}({x})))")
 
+            case (word, sem, "VERB"):
+                P = self.get_new_upper_variable()
+                Q = self.get_new_upper_variable()
+                x = self.get_new_lower_variable()
+                self.lambda_formula = read_expr(
+                    rf"\{P}.\{Q}.(exists {x}.({P}({x}) & {Q}({x})))"
+                    )
+
             case (word, "N", pos):
                 x = self.get_new_lower_variable()
                 self.lambda_formula = read_expr(rf"\{x}.{word}({x})")
 
+            case (word, sem, "ADJ"):
+                P = self.get_new_upper_variable()
+                Q = self.get_new_upper_variable()
+                x = self.get_new_lower_variable()
+                self.lambda_formula = read_expr(
+                    rf"\{P}.\{Q}.(exists {x} . ({word}({x})) & ({P} ({Q})))"
+                )
+
+            case (word, sem, "ADP"):
+                P = self.get_new_upper_variable()
+                Q = self.get_new_upper_variable()
+                self.lambda_formula = read_expr(
+                    rf"\{P}\{Q}.{P}&{Q}"
+                )
+
+            case (word, 'N/NP', pos):
+                pass
+
+            case (word, sem, 'NUM'):
+                P = self.get_new_upper_variable()
+                Q = self.get_new_upper_variable()
+                x = self.get_new_lower_variable()
+
+                self.lambda_formula = read_expr(
+                    rf"\{P}.\{Q}. (exists {x} . ({word}({x})) & ({P} ({Q})))"
+                )
+
+
             case (word, sem, pos):
                 pass
 
-                # FIXME
-                # raise NotImplementedError(f'Missing (default): {word}, {sem}, {pos}')
-            case _:
-                pass
+        if self.lambda_formula is None:
+            print('-------- No lambda for the previous sentence')
+            pass
 
-        print(P, Q, x)
 
     def find_child(self, *args: Any) -> NoReturn:
         """
