@@ -154,12 +154,12 @@ class leaf:
                 # FIXME
                 # print(f"Error with parsing string: {self.word}. Forbidden word found")
 
-        print(f'word: {self.word.lower()}, semantic: {self.semantics}, pos: {self.spacy_p}')
+        # print(f'word: {self.word.lower()}, semantic: {self.semantics}, pos: {self.spacy_p}')
 
         match (self.word.lower(), str(self.semantics), self.spacy_p):
 
             case (word, r"((S\NP)/NP)", pos) | (word, r"(S\NP)/NP", pos) | (word, "VP/NP", pos):
-                print(r'word, r"((S\NP)/NP)", pos')
+                # print(r'word, r"((S\NP)/NP)", pos')
                 P = self.get_new_upper_variable()
                 Q = self.get_new_upper_variable()
                 x = self.get_new_lower_variable()
@@ -168,7 +168,7 @@ class leaf:
                     )
 
             case ('sommige', "PP/NP", pos):
-                print('sommige, PP/NP')
+                # print('sommige, PP/NP')
                 P = self.get_new_upper_variable()
                 Q = self.get_new_upper_variable()
                 x = self.get_new_lower_variable()
@@ -176,7 +176,7 @@ class leaf:
                     rf"\{P}.\{Q}. (exists {x} . ({P}({x}) -> {Q}({x})))")
 
             case ('sommige', sem, pos):
-                print('sommige, rest')
+                # print('sommige, rest')
                 P = self.get_new_upper_variable()
                 Q = self.get_new_upper_variable()
                 x = self.get_new_lower_variable()
@@ -184,7 +184,7 @@ class leaf:
                     rf"\{P}.\{Q}. (exists {x} . ({P}({x}) -> {Q}({x})))")
 
             case ('alle', "NP/N", pos) | ('elke', "NP/N", pos):
-                print(r'alle/elke, NP/N')
+                # print(r'alle/elke, NP/N')
                 P = self.get_new_upper_variable()
                 Q = self.get_new_upper_variable()
                 x = self.get_new_lower_variable()
@@ -203,6 +203,14 @@ class leaf:
                 Q = self.get_new_upper_variable()
                 self.lambda_formula = read_expr(
                     rf"\{P}.\{Q}.({P} & {Q})"
+                )
+
+            case ('geen', "NP/N", "DET"):
+                P = self.get_new_upper_variable()
+                Q = self.get_new_upper_variable()
+                x = self.get_new_lower_variable()
+                self.lambda_formula = read_expr(
+                    rf"\{P}\{Q}. (- exists {x}.({P}({x}) & {Q}({x})))"
                 )
 
             case ('een', "NP/N", "DET"):
@@ -370,7 +378,7 @@ class leaf:
                 pass
 
         if self.lambda_formula is None:
-            print('-------- No lambda for the previous sentence')
+            # print('-------- No lambda for the previous sentence')
             pass
 
 
@@ -534,13 +542,14 @@ class tree:
         Returns:
             str: output string
         """
+
         if self.label == "lx":
             # check if leaf lambda formula is not none
             if lambda_formule and type(self.left) == leaf:
                 # FIXME
                 if self.left.lambda_formula is None:
                     raise NotImplementedError("Lambda Expression is None")
-            return rf"({self.left.make_lambda(lambda_formule=lambda_formule)})"
+            return rf"(\x.(x) ({self.left.make_lambda(lambda_formule=lambda_formule)}))"
         else:
             if lambda_formule and type(self.left) == leaf:
                 # FIXME
@@ -565,19 +574,19 @@ class tree:
 
             elif self.label == "fc":
                 # Forward composition
-                return rf"(\x.{left} ({right}x))"
+                return rf"(\x. ({left} ({right} x)))"
 
             elif self.label == "bc":
                 # Backward composition
-                return rf"(\x.{right} ({left}x))"
+                return rf"(\x. ({right} ({left} x)))"
 
             elif self.label == "fxc":
                 # Forward crossing composition
-                return rf"(\x.{right} ({left}x))"
+                return rf"(\x.({right} ({left} x)))"
 
             elif self.label == "fxc":
                 # Backward crossing composition
-                return rf"(\x.{right} ({left}x))"
+                return rf"(\x.({right} ({left} x)))"
             else:
                 raise NotImplementedError(self.label, " not found")
 
