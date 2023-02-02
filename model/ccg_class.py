@@ -231,12 +231,21 @@ class leaf:
                     rf"\{P}.\{Q}.({P} (\{R}.(in({Q}, {R}))))"
                 )
 
-            case (word, "S\S", "NOUN"):
+            case (word, "S\S", "NOUN") | (word, "S/S", "SCONJ"):
                 v1 = self.get_new_upper_variable()
                 self.lambda_formula = read_expr(
                     rf"\{v1}.{v1}"
                 )
 
+            case (word, sem, "SCONJ"):
+                v1 = self.get_new_upper_variable()
+                v2 = self.get_new_upper_variable()
+                x1 = self.get_new_lower_variable()
+
+                self.lambda_formula = read_expr(
+                    rf"\{v1}.\{v2}.(exists {x1} . ({v1} ({x1})) & ({v2} ({x1})))"
+                )
+            
             case (word, sem, "PRON"):
                 v1 = self.get_new_upper_variable()
                 v2 = self.get_new_upper_variable()
@@ -275,11 +284,8 @@ class leaf:
                 v5 = self.get_new_upper_variable()
 
                 self.lambda_formula = read_expr(
-                    rf"\{v1}. \{v2}. \{v3}. ({v2} (\{v4}.-(((({v1}(\{v5}.({v5}({v4})))))))))"
-                ) #                     rf"\{v1}. \{v2}. \{v3}. ({v2} (\{v4}.-(((({v1}(\{v5}.({v5}({v4}))))) {v3})))"
-                # self.lambda_formula = read_expr(
-                #     rf"\v1.(-v1)"
-                # )
+                   rf"\{v1}.\{v2}.\{v3}.({v2} (\{v4}.(-(({v1} (\{v5}.({v5} ({v4})))) ({v3})))))"
+                )
 
             case(word, 'N/PP', pos):
                 v1 = self.get_new_upper_variable()
@@ -326,6 +332,19 @@ class leaf:
                 self.lambda_formula = read_expr(
                     rf"\P.P"
                 )
+
+            case ("terwijl", sem, pos):
+                v1 = self.get_new_upper_variable()
+                v2 = self.get_new_upper_variable()
+                v3 = self.get_new_upper_variable()
+                v4 = self.get_new_upper_variable()
+                v5 = self.get_new_upper_variable()
+                v6 = self.get_new_upper_variable()
+
+                self.lambda_formula = read_expr(
+                    rf"\{v1}.\{v2}.\{v3}.\{v4}.(({v2}  ({v3})) (\{v5}.(({v1} (\{v6}.{v6})) & ({v4} ({v5})))))"
+                )
+
 
             case (word, r"(S\NP)", pos) | (word, r"S\NP", pos):
                 P = self.get_new_upper_variable()
@@ -398,12 +417,21 @@ class leaf:
                     rf"\{P}.\{Q}. (exists {x} . ({word}({x})) & ({P} ({Q})))"
                 )
 
+            case (word, "N/N", pos):
+                v1 = self.get_new_upper_variable()
+                v2 = self.get_new_upper_variable()
+                s1 = self.get_new_lower_variable()
+
+                self.lambda_formula = read_expr(
+                    rf"\{v1}.\{v2}.(exists {s1} . ({word}({s1})) & {v1} ({v2}))"
+                )
 
             case (word, sem, pos):
                 pass
 
         if self.lambda_formula is None:
-            # print('-------- No lambda for the previous sentence')
+            print(f'word: {self.word.lower()}, semantic: {self.semantics}, pos: {self.spacy_p}')
+            print('------------------------------------------- No lambda for the previous sentence')
             pass
 
 
