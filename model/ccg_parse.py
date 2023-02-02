@@ -115,9 +115,10 @@ def parse_SICK_NL(sick_file: IO[Any]) -> list[tuple[int, int, int, str]]:
         question_id = int(problem_line.split("=")[-1])
         hypothesis = int(hypothesis_line.split(",")[0][7:])
         premise = int(premise_line.split(",")[0][7:])
+        dataset: str = premise_line.split(",")[3][2:-1]
         label = premise_line.split(",")[4][2:-1]
 
-        problem_tuple = (question_id, hypothesis, premise, label)
+        problem_tuple = (question_id, hypothesis, premise, dataset, label)
 
         sick_parse.append(problem_tuple)
 
