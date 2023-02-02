@@ -1,7 +1,7 @@
 from __future__ import annotations
-from tkinter.messagebox import NO
 from typing import Any, NoReturn
 from nltk.sem.logic import Expression  # type: ignore
+from nltk.sem import ApplicationExpression
 import string
 
 read_expr = Expression.fromstring  # type: ignore
@@ -9,7 +9,6 @@ read_expr = Expression.fromstring  # type: ignore
 
 class leaf:
     """Leaf"""
-
 
     def __init__(self, raw_str: str, depth: int, spacy_info: Any) -> None:
         self.raw_str: str = raw_str
@@ -78,7 +77,7 @@ class leaf:
         for replace_word in replace_list:
             self.semantics = self.semantics.replace(f":{replace_word}", "")
 
-    def make_lambda(self, lambda_formule: bool = True) -> str:
+    def make_lambda(self, lambda_formule: bool = True) -> ApplicationExpression:
         """
         make_lambda transforms the tree structure into a lambda string
 
@@ -95,7 +94,7 @@ class leaf:
             str: output string
         """
         if lambda_formule:
-            return f"({self.lambda_formula})"
+            return self.lambda_formula
         else:
             return f"[{self.word}]"
 
@@ -135,10 +134,10 @@ class leaf:
         set_lambda_formula Set the lambda_formula to the expression, according to the lemma, semantics and POS
         sets lambda_formula of this object
         """
-        P: str = None
-        Q: str = None
-        x: str = None
-        self.lambda_formula: Any
+        P: str
+        Q: str
+        x: str
+        self.lambda_formula: ApplicationExpression
         # print(f'self.word: {self.word}, self.semantics: {self.semantics}, self.POS: {self.spacy_p}')
 
         forbidden_lst: list[str] = [r"\'", "-", ","]
@@ -579,7 +578,7 @@ class tree:
         else:
             return self.get_parent_tree().root()  # type: ignore
 
-    def make_lambda(self, lambda_formule: bool = True) -> str:
+    def make_lambda(self, lambda_formule: bool = True) -> ApplicationExpression:
         """
         make_lambda transforms the tree structure into a lambda string
 
@@ -595,14 +594,19 @@ class tree:
         Returns:
             str: output string
         """
-
+        return_lambda: ApplicationExpression
+        
         if self.label == "lx":
             # check if leaf lambda formula is not none
             if lambda_formule and type(self.left) == leaf:
                 # FIXME
                 if self.left.lambda_formula is None:
                     raise NotImplementedError("Lambda Expression is None")
-            return rf"(\x.(x) ({self.left.make_lambda(lambda_formule=lambda_formule)}))"
+
+            return_lambda = ApplicationExpression(read_expr(r"\x.(x)"),
+                                                  self.left.make_lambda(lambda_formule=lambda_formule)
+                                                  ).simplify()
+            
         else:
             if lambda_formule and type(self.left) == leaf:
                 # FIXME
@@ -614,34 +618,43 @@ class tree:
                 if self.right.lambda_formula is None:
                     raise NotImplementedError("Lambda Expression is None")
 
-            left: str = self.left.make_lambda(lambda_formule=lambda_formule)
-            right: str = self.right.make_lambda(lambda_formule=lambda_formule)
+            left: ApplicationExpression = self.left.make_lambda(lambda_formule=lambda_formule).simplify()
+            right: ApplicationExpression = self.right.make_lambda(lambda_formule=lambda_formule).simplify()
 
             if self.label == "fa":
                 # Forward application
-                return rf"({left} {right})"
+                return_lambda = ApplicationExpression(left, right).simplify()
 
             elif self.label == "ba":
                 # backward application
-                return rf"({right} {left})"
+                return_lambda = ApplicationExpression(right, left).simplify()
 
             elif self.label == "fc":
                 # Forward composition
-                return rf"(\x. ({left} ({right} x)))"
+                return_lambda = ApplicationExpression(ApplicationExpression(read_expr(r"\F. \A.(\x. F (A(x))"),
+                                                                            left).simplify(),
+                                                      right).simplify()
 
             elif self.label == "bc":
                 # Backward composition
-                return rf"(\x. ({right} ({left} x)))"
+                return_lambda = ApplicationExpression(ApplicationExpression(read_expr(r"\F. \A.(\x. F (A(x))"),
+                                                                            right).simplify(),
+                                                      left).simplify()
 
             elif self.label == "fxc":
                 # Forward crossing composition
-                return rf"(\x.({right} ({left} x)))"
-
-            elif self.label == "fxc":
+                return_lambda = ApplicationExpression(ApplicationExpression(read_expr(r"(\F. \A. \x.(F(A(x)))"),
+                                                                            left).simplify(),
+                                                      right).simplify()
+            elif self.label == "bxc":
                 # Backward crossing composition
-                return rf"(\x.({right} ({left} x)))"
+                return_lambda = ApplicationExpression(ApplicationExpression(read_expr(r"(\F. \A. \x.(F(A(x)))"),
+                                                                            right).simplify(),
+                                                      left).simplify()
             else:
                 raise NotImplementedError(self.label, " not found")
+
+        return return_lambda
 
     def print_lambda(self) -> str:
         """

@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
     # get CCG info
     ccg_dict: dict[int, str]
-    _, ccg_dict = get_ccg_dict()
+    ccg_dict = get_ccg_dict()
 
     # file to write anwers to
     solve_file: IO[Any] = open(rf"{dir_path}\..\output\solve.py", "w+")
