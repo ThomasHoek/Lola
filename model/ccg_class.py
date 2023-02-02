@@ -148,7 +148,7 @@ class leaf:
                 # For \' simply remove it from the string
                 # if not forbidden == r'\'':
                 #     return
-                
+
                 self.word.replace(r'\'', '')
                 self.word.replace('-', '')
                 # FIXME

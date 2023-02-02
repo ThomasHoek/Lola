@@ -65,20 +65,24 @@ if __name__ == "__main__":
     neutral_label: int = 0
 
     print("-----------FOL-----------")
-    
+
     # for each problem
     for task in tqdm(sick_dataset):
         # get info
-        problemID, hypothesis, premise, solution = task
+        problemID, hypothesis, premise, dataset, solution = task
         hypothesis = ccg_dict[hypothesis - 1]
         premise = ccg_dict[premise - 1]
+
+        # if hypothesis fails
+        if dataset != "TEST":
+            continue
 
         # write info to file
         solve_file.write(f"{problemID} | {solution}\n")
         solve_file.write(f"h: {hypothesis}\n")
         solve_file.write(f"p: {premise}\n")
 
-        # if hypothesis fails
+
         if hypothesis == "error" or premise == "error":
             solve_file.write("s: error\n")
             error_counter += 1
