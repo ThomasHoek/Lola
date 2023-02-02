@@ -361,8 +361,33 @@ class leaf:
                     rf"\{P}\{Q}.{P}&{Q}"
                 )
 
+            case (word, sem, "NOUN"):
+                P = self.get_new_upper_variable()
+                Q = self.get_new_upper_variable()
+                x = self.get_new_lower_variable()
+
+                self.lambda_formula = read_expr(
+                    rf"\{P}.\{Q}.(exists {x} . ({word}({x}) & {P} ({Q})))"
+                )
+
             case (word, 'N/NP', pos):
                 pass
+
+            case (word, sem, "ADV"):
+                v1 = self.get_new_upper_variable()
+                x1 = self.get_new_lower_variable()
+                self.lambda_formula = read_expr(
+                    rf"\{v1}.(exists {x1} . (entity({x1}) & ({v1}) ({x1})))"
+                )
+
+            case (word, sem, "AUX"):
+                v1 = self.get_new_upper_variable()
+                v2 = self.get_new_upper_variable()
+                v3 = self.get_new_upper_variable()
+
+                self.lambda_formula = read_expr(
+                    rf"\{v1}.\{v2}.\{v3}.(({v1} ({v2})) ({v3}))"
+                )
 
             case (word, sem, 'NUM'):
                 P = self.get_new_upper_variable()
