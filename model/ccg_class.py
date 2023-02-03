@@ -1,7 +1,8 @@
 from __future__ import annotations
 from typing import Any, NoReturn
-from nltk.sem.logic import Expression  # type: ignore
+from nltk.sem.logic import Expression, Variable, LogicalExpressionException  # type: ignore
 from nltk.sem import ApplicationExpression
+
 import string
 
 read_expr = Expression.fromstring  # type: ignore
@@ -143,19 +144,21 @@ class leaf:
         forbidden_lst: list[str] = [r"\'", "-", ","]
 
         for forbidden in forbidden_lst:
-            if forbidden in self.word:
+            if forbidden in self.spacy_l:
                 # For \' simply remove it from the string
                 # if not forbidden == r'\'':
                 #     return
 
-                self.word.replace(r'\'', '')
-                self.word.replace('-', '')
+                self.spacy_l = self.spacy_l.replace(r'\'', '')
+                self.spacy_l = self.spacy_l.replace('-', '')
                 # FIXME
                 # print(f"Error with parsing string: {self.word}. Forbidden word found")
 
-        # print(f'word: {self.word.lower()}, semantic: {self.semantics}, pos: {self.spacy_p}')
+        if self.spacy_l.lower() == "e":
+            self.spacy_l = "een"
 
-        match (self.word.lower(), str(self.semantics), self.spacy_p):
+        # print(f'word: {self.word.lower()}, semantic: {self.semantics}, pos: {self.spacy_p}')
+        match (self.spacy_l.lower(), str(self.semantics), self.spacy_p):
 
             case (word, r"((S\NP)/NP)", pos) | (word, r"(S\NP)/NP", pos) | (word, "VP/NP", pos):
                 # print(r'word, r"((S\NP)/NP)", pos')
@@ -603,10 +606,14 @@ class tree:
                 if self.left.lambda_formula is None:
                     raise NotImplementedError("Lambda Expression is None")
 
-            return_lambda = ApplicationExpression(read_expr(r"\x.(x)"),
-                                                  self.left.make_lambda(lambda_formule=lambda_formule)
+            P = read_expr("P")
+            Q = read_expr("Q")
+            a = read_expr(r'a')            
+            new_expr =  read_expr(rf'a{self.depth}')
+            return_lambda = ApplicationExpression(read_expr(rf"\{P}\{Q}.(exists {new_expr}.({P}({new_expr}) & {Q}({new_expr})))"),
+                                                  self.left.make_lambda(lambda_formule=lambda_formule).replace(a.variable, new_expr, replace_bound=True, alpha_convert=True)
                                                   ).simplify()
-            
+
         else:
             if lambda_formule and type(self.left) == leaf:
                 # FIXME
@@ -618,8 +625,11 @@ class tree:
                 if self.right.lambda_formula is None:
                     raise NotImplementedError("Lambda Expression is None")
 
-            left: ApplicationExpression = self.left.make_lambda(lambda_formule=lambda_formule).simplify()
-            right: ApplicationExpression = self.right.make_lambda(lambda_formule=lambda_formule).simplify()
+            a = read_expr(r'a')            
+            new_expr =  read_expr(rf'a{self.depth}')
+            left: ApplicationExpression = self.left.make_lambda(lambda_formule=lambda_formule).replace(a.variable, new_expr, replace_bound=True, alpha_convert=True)
+            right: ApplicationExpression = self.right.make_lambda(lambda_formule=lambda_formule).replace(a.variable, new_expr, replace_bound=True, alpha_convert=True)
+            
 
             if self.label == "fa":
                 # Forward application
