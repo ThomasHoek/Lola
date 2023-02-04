@@ -169,7 +169,7 @@ class leaf:
                     rf"\{P}.\{Q}.(exists {x}.({P}({x}) & {Q}({x})))"
                     )
 
-            case ('sommige', "PP/NP", pos):
+            case ('sommig', "PP/NP", pos):
                 # print('sommige, PP/NP')
                 P = self.get_new_upper_variable()
                 Q = self.get_new_upper_variable()
@@ -177,7 +177,7 @@ class leaf:
                 self.lambda_formula = read_expr(
                     rf"\{P}.\{Q}. (exists {x} . ({P}({x}) -> {Q}({x})))")
 
-            case ('sommige', sem, pos):
+            case ('sommig', sem, pos):
                 # print('sommige, rest')
                 P = self.get_new_upper_variable()
                 Q = self.get_new_upper_variable()
@@ -308,7 +308,7 @@ class leaf:
                     rf"\{P}.({P})"
                 )
 
-            case ('is', sem, pos):
+            case ('is', sem, pos) | ('zijn', sem, pos):
                 P = self.get_new_upper_variable()
                 Q = self.get_new_upper_variable()
                 self.lambda_formula = read_expr(
