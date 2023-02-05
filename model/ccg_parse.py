@@ -109,8 +109,8 @@ def parse_SICK_NL(sick_file: IO[Any]) -> list[tuple[int, int, int, str]]:
 
     for i in range(0, len(sick_data), 3):
         problem_line = sick_data[i]
-        hypothesis_line = sick_data[i + 1]
-        premise_line = sick_data[i + 2]
+        hypothesis_line = sick_data[i + 2]
+        premise_line = sick_data[i + 1]
 
         question_id = int(problem_line.split("=")[-1])
         hypothesis = int(hypothesis_line.split(",")[0][7:])

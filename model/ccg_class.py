@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Any, NoReturn
-from nltk.sem.logic import Expression, Variable, LogicalExpressionException  # type: ignore
+from nltk.sem.logic import Expression  # type: ignore
 from nltk.sem import ApplicationExpression
 
 import string
@@ -22,7 +22,8 @@ class leaf:
 
         self.filter_raw_str(raw_str[:-1])
 
-        self.alphabet_upper: list[str] = [x.upper() for x in list(string.ascii_lowercase)]
+        self.alphabet_upper: list[str] = [x.upper()
+                                          for x in list(string.ascii_lowercase)]
         self.alphabet_lower: list[str] = list(string.ascii_lowercase)
         self.variables_lower: set[Any] = set()
         self.variables_upper: set[Any] = set()
@@ -113,7 +114,6 @@ class leaf:
             if letter not in self.variables_lower:
                 self.variables_lower.add(letter)
                 return letter
-        
 
     def get_new_upper_variable(self) -> str:
         """
@@ -138,7 +138,7 @@ class leaf:
         P: str
         Q: str
         x: str
-        self.lambda_formula: ApplicationExpression
+        self.lambda_formula: Any
         # print(f'self.word: {self.word}, self.semantics: {self.semantics}, self.POS: {self.spacy_p}')
 
         forbidden_lst: list[str] = [r"\'", "-", ","]
@@ -167,7 +167,7 @@ class leaf:
                 x = self.get_new_lower_variable()
                 self.lambda_formula = read_expr(
                     rf"\{P}.\{Q}.(exists {x}.({P}({x}) & {Q}({x})))"
-                    )
+                )
 
             case ('sommig', "PP/NP", pos):
                 # print('sommige, PP/NP')
@@ -233,7 +233,7 @@ class leaf:
                     rf"\{P}.\{Q}.({P} (\{R}.(in({Q}, {R}))))"
                 )
 
-            case (word, "S\S", "NOUN") | (word, "S/S", "SCONJ"):
+            case (word, r"S\S", "NOUN") | (word, "S/S", "SCONJ"):
                 v1 = self.get_new_upper_variable()
                 self.lambda_formula = read_expr(
                     rf"\{v1}.{v1}"
@@ -247,13 +247,13 @@ class leaf:
                 self.lambda_formula = read_expr(
                     rf"\{v1}.\{v2}.(exists {x1} . ({v1} ({x1})) & ({v2} ({x1})))"
                 )
-            
+
             case (word, sem, "PRON"):
                 v1 = self.get_new_upper_variable()
                 v2 = self.get_new_upper_variable()
                 x1 = self.get_new_lower_variable()
                 x2 = self.get_new_lower_variable()
-                
+
                 self.lambda_formula = read_expr(
                     rf"\{v1} \{v2}((exists {x1} . ({v1} (exists {x2} . (persoon({x2}))) ({x1})) & ({v2} ({x1}))))"
                 )
@@ -286,7 +286,7 @@ class leaf:
                 v5 = self.get_new_upper_variable()
 
                 self.lambda_formula = read_expr(
-                   rf"\{v1}.\{v2}.\{v3}.({v2} (\{v4}.(-(({v1} (\{v5}.({v5} ({v4})))) ({v3})))))"
+                    rf"\{v1}.\{v2}.\{v3}.({v2} (\{v4}.(-(({v1} (\{v5}.({v5} ({v4})))) ({v3})))))"
                 )
 
             case(word, 'N/PP', pos):
@@ -300,10 +300,9 @@ class leaf:
                     rf"\{v1}.\{v2}.({word}({v2}) & {v1} ({v2}))"
                 )
 
-
             case (word, sem, "DET"):
                 P = self.get_new_upper_variable()
-                
+
                 self.lambda_formula = read_expr(
                     rf"\{P}.({P})"
                 )
@@ -322,7 +321,7 @@ class leaf:
                     rf"\{P}\{Q}.{P}&{Q}"
                 )
 
-            case (word, "PP/NP", "SCONJ"): # in, naar 
+            case (word, "PP/NP", "SCONJ"):  # in, naar
                 P = self.get_new_upper_variable()
                 Q = self.get_new_upper_variable()
                 self.lambda_formula = read_expr(
@@ -347,7 +346,6 @@ class leaf:
                     rf"\{v1}.\{v2}.\{v3}.\{v4}.(({v2}  ({v3})) (\{v5}.(({v1} (\{v6}.{v6})) & ({v4} ({v5})))))"
                 )
 
-
             case (word, r"(S\NP)", pos) | (word, r"S\NP", pos):
                 P = self.get_new_upper_variable()
                 Q = self.get_new_upper_variable()
@@ -361,7 +359,7 @@ class leaf:
                 x = self.get_new_lower_variable()
                 self.lambda_formula = read_expr(
                     rf"\{P}.\{Q}.(exists {x}.({P}({x}) & {Q}({x})))"
-                    )
+                )
 
             case (word, "N", pos):
                 x = self.get_new_lower_variable()
@@ -432,10 +430,11 @@ class leaf:
                 pass
 
         if self.lambda_formula is None:
-            print(f'word: {self.word.lower()}, semantic: {self.semantics}, pos: {self.spacy_p}')
-            print('------------------------------------------- No lambda for the previous sentence')
+            print(
+                f'word: {self.word.lower()}, semantic: {self.semantics}, pos: {self.spacy_p}')
+            print(
+                '------------------------------------------- No lambda for the previous sentence')
             pass
-
 
     def find_child(self, *args: Any) -> NoReturn:
         """
@@ -598,7 +597,7 @@ class tree:
             str: output string
         """
         return_lambda: ApplicationExpression
-        
+
         if self.label == "lx":
             # check if leaf lambda formula is not none
             if lambda_formule and type(self.left) == leaf:
@@ -608,10 +607,11 @@ class tree:
 
             P = read_expr("P")
             Q = read_expr("Q")
-            a = read_expr(r'a')            
-            new_expr =  read_expr(rf'a{self.depth}')
+            a = read_expr(r'a')
+            new_expr = read_expr(rf'a{self.depth}')
             return_lambda = ApplicationExpression(read_expr(rf"\{P}\{Q}.(exists {new_expr}.({P}({new_expr}) & {Q}({new_expr})))"),
-                                                  self.left.make_lambda(lambda_formule=lambda_formule).replace(a.variable, new_expr, replace_bound=True, alpha_convert=True)
+                                                  self.left.make_lambda(lambda_formule=lambda_formule).replace(
+                                                      a.variable, new_expr, replace_bound=True, alpha_convert=True)
                                                   ).simplify()
 
         else:
@@ -625,11 +625,12 @@ class tree:
                 if self.right.lambda_formula is None:
                     raise NotImplementedError("Lambda Expression is None")
 
-            a = read_expr(r'a')            
-            new_expr =  read_expr(rf'a{self.depth}')
-            left: ApplicationExpression = self.left.make_lambda(lambda_formule=lambda_formule).replace(a.variable, new_expr, replace_bound=True, alpha_convert=True)
-            right: ApplicationExpression = self.right.make_lambda(lambda_formule=lambda_formule).replace(a.variable, new_expr, replace_bound=True, alpha_convert=True)
-            
+            a = read_expr(r'a')
+            new_expr = read_expr(rf'a{self.depth}')
+            left: ApplicationExpression = self.left.make_lambda(lambda_formule=lambda_formule).replace(
+                a.variable, new_expr, replace_bound=True, alpha_convert=True)
+            right: ApplicationExpression = self.right.make_lambda(lambda_formule=lambda_formule).replace(
+                a.variable, new_expr, replace_bound=True, alpha_convert=True)
 
             if self.label == "fa":
                 # Forward application

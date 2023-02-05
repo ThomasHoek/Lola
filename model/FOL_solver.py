@@ -12,7 +12,7 @@ from ccg_parse import parse_SICK_NL, parse_assumptions
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.metrics import classification_report
- 
+
 # print(classification_report(y_test, y_pred))
 # cm = confusion_matrix(y_test, predictions, labels=clf.classes_)
 # disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=clf.classes_)
@@ -73,12 +73,12 @@ if __name__ == "__main__":
 
     print("-----------FOL-----------")
 
-    correct_labels: list = []
-    predict_labels: list = []
-    
-    predict_labels_neutral: list = []
-    correct_labels_all: list = []
-    
+    correct_labels: list[str] = []
+    predict_labels: list[str] = []
+
+    predict_labels_neutral: list[str] = []
+    correct_labels_all: list[str] = []
+
     # for each problem
     for task in tqdm(sick_dataset):
         # get info
@@ -96,12 +96,10 @@ if __name__ == "__main__":
         solve_file.write(f"h: {hypothesis}\n")
         solve_file.write(f"p: {premise}\n")
 
-
         if hypothesis == "error" or premise == "error":
             solve_file.write("s: error\n")
             error_counter += 1
             predict_labels_neutral.append("unknown")
-            
 
         else:
             hypo_assumption: list[str] = assumption_clean + [hypothesis]
@@ -128,7 +126,7 @@ if __name__ == "__main__":
                 elif not true_solution_return and false_solution_return:
                     predict_labels.append("no")
                     predict_labels_neutral.append("no")
-                    
+
                 elif not true_solution_return and not false_solution_return:
                     predict_labels.append("unknown")
                     predict_labels_neutral.append("unknown")
@@ -147,12 +145,11 @@ if __name__ == "__main__":
                     if not true_solution_return and not false_solution_return:
                         correct_label += 1
                         neutral_label += 1
-                        
 
             except Exception as e:
                 solve_file.write(f"s: {e}\n")
                 parse_fail_counter += 1
-                
+
                 predict_labels_neutral.append("unknown")
 
         solve_file.write("------------------------------\n")
@@ -170,20 +167,21 @@ if __name__ == "__main__":
     print(len(correct_labels))
     print(len(predict_labels))
 
-    cm = confusion_matrix(correct_labels, predict_labels, labels=["yes", "no", "unknown"])
+    cm = confusion_matrix(correct_labels, predict_labels,
+                          labels=["yes", "no", "unknown"])
     disp = ConfusionMatrixDisplay(confusion_matrix=cm,
-                              display_labels=["yes", "no", "unknown"])
+                                  display_labels=["yes", "no", "unknown"])
     disp.plot()
     plt.savefig(rf"{dir_path}\..\output\test_parse_read.png")
 
     print(classification_report(correct_labels, predict_labels, zero_division=0))
 
-
-    cm = confusion_matrix(correct_labels_all, predict_labels_neutral, labels=["yes", "no", "unknown"])
+    cm = confusion_matrix(correct_labels_all, predict_labels_neutral, labels=[
+                          "yes", "no", "unknown"])
     disp = ConfusionMatrixDisplay(confusion_matrix=cm,
-                              display_labels=["yes", "no", "unknown"])
+                                  display_labels=["yes", "no", "unknown"])
     disp.plot()
     plt.savefig(rf"{dir_path}\..\output\test_all_read.png")
 
-
-    print(classification_report(correct_labels_all, predict_labels_neutral, zero_division=0))
+    print(classification_report(correct_labels_all,
+          predict_labels_neutral, zero_division=0))
