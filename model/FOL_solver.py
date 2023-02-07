@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
     print("-----------CCG-----------")
     # get all sentences and parse them
-    SICK_NL_test_file: IO[Any] = open(rf"{dir_path}\..\input\sen.pl", "r")
+    SICK_NL_test_file: IO[Any] = open(rf"{dir_path}/../input/sen.pl", "r")
     sick_dataset = parse_SICK_NL(SICK_NL_test_file)
     SICK_NL_test_file.close()
 
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     ccg_dict = get_ccg_dict()
 
     # file to write anwers to
-    solve_file: IO[Any] = open(rf"{dir_path}\..\output\solve.py", "w+")
+    solve_file: IO[Any] = open(rf"{dir_path}/../output/solve.py", "w+")
 
     # counters to see the ratio of fail and succes
     error_counter: int = 0

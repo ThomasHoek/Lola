@@ -131,12 +131,12 @@ def parse_assumptions() -> list[str]:
     dir_path: str = os.path.dirname(os.path.realpath(__file__))
 
     disjunction_file: IO[Any] = open(
-        rf"{dir_path}/../assumptions\Disjunction (bidirectional).txt", encoding="utf-8")
+        rf"{dir_path}/../assumptions/Disjunction (bidirectional).txt", encoding="utf-8")
     disjunction_data: list[str] = [x.rstrip() for x in disjunction_file.readlines()]
     disjunction_file.close()
 
     implication_file: IO[Any] = open(
-        rf"{dir_path}/../assumptions\Implication (unidirectional) NC.txt", encoding="utf-8")
+        rf"{dir_path}/../assumptions/Implication (unidirectional) NC.txt", encoding="utf-8")
     implication_data: list[str] = [x.rstrip() for x in implication_file.readlines()]
     implication_file.close()
 
