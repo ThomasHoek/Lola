@@ -21,13 +21,21 @@ read_expr = Expression.fromstring
 # load data
 dir_path: str = os.path.dirname(os.path.realpath(__file__))
 
+mode="windows"
+# mode = "linux"
 
-def prover9_prove(conclusion: ApplicationExpression, premises: list[ApplicationExpression] = [], path=rf"{dir_path}/../prover9/bin-win32") -> bool:
+def prover9_prove(conclusion: ApplicationExpression,
+                  premises: list[ApplicationExpression] = []) -> bool:
     """
     Give a conclusion and a list of premises, builds a tableau and
     detects whether the premises entail the conclusion.
     Returns a boolean value and optionally prints the tableau structure
     """
+    if mode == "windows":
+        path=rf"{dir_path}/../prover9/bin-win32"
+    else:
+        path=rf"{dir_path}/../prover9/bin"
+
     prover9 = nltk.Prover9()
 
     if path:
@@ -86,7 +94,7 @@ if __name__ == "__main__":
         hypothesis = ccg_dict[hypothesis - 1]
         premise = ccg_dict[premise - 1]
 
-        # if hypothesis fails
+        # select dataset
         if dataset != "TRIAL":
             continue
 
@@ -107,11 +115,9 @@ if __name__ == "__main__":
                 read_expr(r"\x. -x"), premise).simplify()
 
             try:
-                true_solution_return, info = prover9_prove(
-                    premise, hypo_assumption)
+                true_solution_return, info = prover9_prove(premise, hypo_assumption)
 
-                false_solution_return, info = prover9_prove(
-                    r_premise, hypo_assumption)
+                false_solution_return, info = prover9_prove(r_premise, hypo_assumption)
 
                 solve_file.write("s:{} | {} \n".format(
                     true_solution_return, false_solution_return))
@@ -172,7 +178,7 @@ if __name__ == "__main__":
     disp = ConfusionMatrixDisplay(confusion_matrix=cm,
                                   display_labels=["yes", "no", "unknown"])
     disp.plot()
-    plt.savefig(rf"{dir_path}\..\output\test_parse_read.png")
+    plt.savefig(rf"{dir_path}/../output/test_parse_read.png")
 
     print(classification_report(correct_labels, predict_labels, zero_division=0))
 
@@ -181,7 +187,8 @@ if __name__ == "__main__":
     disp = ConfusionMatrixDisplay(confusion_matrix=cm,
                                   display_labels=["yes", "no", "unknown"])
     disp.plot()
-    plt.savefig(rf"{dir_path}\..\output\test_all_read.png")
+    plt.savefig(rf"{dir_path}/../output/test_all_read.png")
 
     print(classification_report(correct_labels_all,
-          predict_labels_neutral, zero_division=0))
+                                predict_labels_neutral,
+                                zero_division=0))
